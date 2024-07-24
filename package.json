@@ -1,0 +1,22 @@
+{
+  "name": "metalayer",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@youpaichris/logger": "^6.1.1",
+    "axios": "^1.7.2",
+    "axios-cookiejar-support": "^5.0.2",
+    "dotenv": "^16.4.5",
+    "ethers": "^5.7.2",
+    "p-limit": "^6.1.0",
+    "tough-cookie": "^4.1.4"
+  },
+  "type": "module"
+}
