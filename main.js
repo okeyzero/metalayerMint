@@ -80,7 +80,8 @@ async function get_request_token() {
                 'User-Token': UserToken,
                 'Content-Type': 'application/json',
                 'Developer-Id': DeveloperId,
-            }
+            },
+            timeout: 120000
         }
     );
     // console.log(response.data)
@@ -99,12 +100,15 @@ async function mintNft(privateKey) {
     const signature = await wallet.signMessage(message);
 
     let requestToken;
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 100; i++) {
         try {
             logger.debug(`${myAddress} get request token... `)
-            requestToken = (await get_request_token())?.data?.token
+            const response = await get_request_token()
+            requestToken = response?.data?.token
             if (requestToken) {
                 break
+            } else {
+                logger.error(`${myAddress} get request token failed ${JSON.stringify(response)}`)
             }
         } catch (e) {
             console.error(e)
@@ -119,7 +123,6 @@ async function mintNft(privateKey) {
         return
     }
 
-    let toAddress, toAmount;
     for (let i = 0; i < 5; i++) {
         try {
             const request = await mint(client, myAddress, signature, requestToken)
@@ -148,6 +151,8 @@ async function mintNft(privateKey) {
         successPath,
         `${myAddress}----${privateKey}\n`
     );
+    logger.success(`${myAddress} mint success`)
+
 }
 
 async function main() {
@@ -168,7 +173,7 @@ async function main() {
         const [address, privateKey] = key.split('----');
         if (successAddress.includes(address.toLocaleLowerCase())) {
             logger.info(`${address} 已经领取过了`);
-            return Promise.resolve();
+            return
         }
         return limit(() => mintNft(privateKey));
     });
