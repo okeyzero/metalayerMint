@@ -23,10 +23,16 @@ npm i
 ```
 ## 设置配置 (文件 .env)
 
-1. `USERTOKEN` 填入 nocaptcha (网址 https://www.nocaptcha.io/register?c=hLf08E ) 的 用户密钥
-2. `THREAD` 填入你理想的线程数量 我自己测试的 10 没问题
-3. `proxys.txt` 填入自己的代理(我使用的  https://app.nstproxy.com/register?i=r0wYrb ) 一行一个 格式:user:pass@ip:port
+1. `USERTOKEN` 填入 nocaptcha (网址 https://www.nocaptcha.io/register?c=hLf08E ) 的 用户密钥    
+2. `YES_CLIENTKEY` 填入 yescaptcha (网址 https://yescaptcha.com/i/dnt6AM) 的 密钥ClientKey
+3. `THREAD` 填入你理想的线程数量 我自己测试的 10 没问题
+4. `proxys.txt` 填入自己的代理(我使用的  https://app.nstproxy.com/register?i=r0wYrb ) 一行一个 格式:user:pass@ip:port
 
+**注意:**
+
+**使用 `nocaptcha` 打码需要代理,所以一定要完善 proxys.txt,只需要填写`USERTOKEN`,而`YES_CLIENTKEY` 不填**
+
+**使用 `yescaptcha` 不需要代理, 不需要设置proxys.txt, 只要文件存在就行,只需要填写`YES_CLIENTKEY`,而`USERTOKEN` 不填**
 ## 运行
 
 然后，运行以下命令来启动程序：
