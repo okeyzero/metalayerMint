@@ -8,16 +8,27 @@ import Logger from "@youpaichris/logger";
 import path from "path";
 import {fileURLToPath} from 'url';
 import * as dotenv from "dotenv";
+import captcha from "./yesCaptcha.js";
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url)
 const logger = new Logger(path.basename(__filename));
 const successPath = "success.txt";
 const failPath = "fail.txt";
-
+const yes_clientkey = process.env.YES_CLIENTKEY;
 const UserToken = process.env.USERTOKEN;
+let useYesCaptcha = false;
+//UserToken 如果为空 yes_clientkey 不为空 则使用yes_clientkey
+if (!UserToken && yes_clientkey) {
+    logger.info("UserToken 为空 使用 yes_clientkey")
+    useYesCaptcha = true;
+} else if (UserToken) {
+    logger.info("UserToken 不为空 使用 UserToken")
+} else {
+    logger.error("UserToken 和 yes_clientkey 都为空")
+    process.exit(1)
+}
 const thread = parseInt(process.env.THREAD) || 1;
-const DeveloperId = "hLf08E"
 
 const allProxy = fs.readFileSync("proxys.txt", "utf-8").split("\n")
 logger.info(`代理总数 ${allProxy.length}`)
@@ -79,7 +90,7 @@ async function get_request_token() {
             headers: {
                 'User-Token': UserToken,
                 'Content-Type': 'application/json',
-                'Developer-Id': DeveloperId,
+                'Developer-Id': 'hLf08E',
             },
             timeout: 120000
         }
@@ -89,6 +100,26 @@ async function get_request_token() {
 
 }
 
+async function get_request_token_yes(pageAction) {
+    // const proxy = allProxy[Math.floor(Math.random() * allProxy.length)]
+    const task = await captcha.createTask(
+        "https://metalayer.caldera.xyz/mint",
+        "0x4AAAAAAAft2frgHoEZW9zt",
+        "TurnstileTaskProxyless",
+        yes_clientkey,
+        // proxy
+    );
+    if (!task.taskId) {
+        logger.debug(`${pageAction} 任务创建失败 ${JSON.stringify(task)}`)
+        throw new Error(`${pageAction} 任务创建失败`);
+    }
+    const result = await captcha.getTaskResult(task.taskId, yes_clientkey);
+    if (!result) {
+        throw new Error(`${pageAction} 人机验证失败`);
+    }
+    const {token} = result.solution;
+    return token;
+}
 
 async function mintNft(privateKey) {
     const jar = new CookieJar();
@@ -103,8 +134,14 @@ async function mintNft(privateKey) {
     for (let i = 0; i < 100; i++) {
         try {
             logger.debug(`${myAddress} get request token... `)
-            const response = await get_request_token()
-            requestToken = response?.data?.token
+            let response;
+            if (useYesCaptcha) {
+                response = await get_request_token_yes("TurnstileTaskS2")
+                requestToken = response
+            } else {
+                response = await get_request_token()
+                requestToken = response?.data?.token
+            }
             if (requestToken) {
                 break
             } else {
@@ -114,6 +151,7 @@ async function mintNft(privateKey) {
             console.error(e)
         }
     }
+
     if (!requestToken) {
         logger.error(`${myAddress} get request token failed`)
         fs.appendFileSync(
